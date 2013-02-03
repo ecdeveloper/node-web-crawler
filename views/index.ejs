@@ -1,0 +1,31 @@
+<div class="container">
+	<h1>Active scrapers are here</h1>
+	<p>
+		<form class="form-inline" method="POST" action="/add">
+			<fieldset>
+				<legend>Scrape a website</legend>
+				<input type="text" class="input-large" name="url" placeholder="Address">
+				<button type="submit" class="btn">Scrape it!</button>
+			</fieldset>
+		</form>
+	</p>
+
+	<p>
+		<fieldset>
+			<legend>Active scrapers</legend>
+			<table class="table table-bordered table-striped">
+				<thead>
+					<tr>
+						<th>Address</th>
+						<th>Status</th>
+						<th>General stats</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody id="active-scrapers-body">
+				</tbody>
+			</table>
+		</fieldset>
+	</p>
+
+</div> <!-- /container -->

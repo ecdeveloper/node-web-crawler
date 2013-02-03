@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Bootstrap, from Twitter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link href="/stylesheets/bootstrap/bootstrap.css" rel="stylesheet">
+	<script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+	<script src="http://code.highcharts.com/highcharts.js"></script>
+	<script src="http://code.highcharts.com/modules/exporting.js"></script>
+	<script src="/javascripts/highcharts.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+
+
+	<script>
+		var socket = io.connect(window.location.hostname, {port: 3000});
+		socket.on('general-stats', function (data)
+		{
+			var host = data.host.replace(/\./g,""),
+				general_stats = 'mem: '+ data.memory +' / Reqs: '+ data.requests;
+
+			// data.max_threads
+
+			if (!$("#scraper-" + host).length)
+				$("#active-scrapers-body").append(
+					'<tr id="scraper-'+host+'"><td><a href="#">'+ data.host +'</a></td>'+
+					'<td>scraping</td> <td class="general-stats">'+ general_stats +'</td>'+
+					'<td> <button class="btn btn-primary">Pause</button> <button class="btn btn-danger">Stop</button></td>'+
+					'</tr>'
+					)
+			else
+				$("#scraper-" + host + " .general-stats").html(general_stats);
+		});
+
+		socket.on('checking', function(data)
+		{
+			$("#checking-log").prepend("<a href='"+ data.url +"'>" + data.url + "</a>" + "<br/>");
+		});
+
+		socket.on('rps', function(data)
+		{
+			rpsChart.series[0].addPoint([(new Date()).getTime(), parseInt(data.rps)], true, true)
+		})
+
+		socket.on('got-404', function(data)
+		{
+			$("#404").prepend(data.url + " [<a href='' target='_blank'>"+data.source+"</a>] <hr>");
+		});
+	</script>
+
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+  </head>
+
+<body>
+	<div class="navbar navbar-inverse navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container">
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</a>
+
+<div id="cont"></div>
+
+				<a class="brand" href="/">Scraping center</a>
+				<div class="nav-collapse collapse">
+					<ul class="nav">
+						<li><a href="/">Home</a></li>
+						<li><a href="/scraper/active">Active scrapers</a></li>
+					</ul>
+				</div><!--/.nav-collapse -->
+			</div>
+		</div>
+	</div> 
+	<% if(typeof body!="undefined") { %>
+		<%- body %>
+	<% } %>
+</body>
+</html>
