@@ -1,4 +1,4 @@
-node-web-scraper
+node-web-crawler
 ================
 
-A web scraper with a web user interface which shows scraping stats in realtime. Uses Node.JS, jQuery, Socket.IO, Express, Twitter Bootstrap.
+A web crawler with a web user interface which shows crawling stats in realtime. Uses Node.JS, jQuery, Socket.IO, Express, Twitter Bootstrap.
