@@ -16,10 +16,10 @@ io.configure(function () {
 	io.set('force new connection', true);
 });
 
-io.sockets.on('connection', function (socket) 
+io.sockets.on('connection', function (socket)
 {
-	socket.on('setMaxThreads', function(data){  })
-})
+	socket.on('setMaxThreads', function(data){  });
+});
 
 app.configure(function() {
 	app.set('views', __dirname + '/views');
