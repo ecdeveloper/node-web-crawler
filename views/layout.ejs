@@ -8,48 +8,16 @@
     <meta name="author" content="">
 
     <!-- Le styles -->
-    <link href="/stylesheets/bootstrap/bootstrap.css" rel="stylesheet">
+    <link href="/css/bootstrap/bootstrap.css" rel="stylesheet">
 	<script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
 	<script src="http://code.highcharts.com/highcharts.js"></script>
 	<script src="http://code.highcharts.com/modules/exporting.js"></script>
-	<script src="/javascripts/highcharts.js"></script>
+	<script src="/js/highcharts.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
 
 
 	<script>
 		var socket = io.connect(window.location.hostname, {port: 3000});
-		socket.on('general-stats', function (data)
-		{
-			var host = data.host.replace(/\./g,""),
-				general_stats = 'mem: '+ data.memory +' / Reqs: '+ data.requests;
-
-			// data.max_threads
-
-			if (!$("#scraper-" + host).length)
-				$("#active-scrapers-body").append(
-					'<tr id="scraper-'+host+'"><td><a href="#">'+ data.host +'</a></td>'+
-					'<td>scraping</td> <td class="general-stats">'+ general_stats +'</td>'+
-					'<td> <button class="btn btn-primary">Pause</button> <button class="btn btn-danger">Stop</button></td>'+
-					'</tr>'
-					)
-			else
-				$("#scraper-" + host + " .general-stats").html(general_stats);
-		});
-
-		socket.on('checking', function(data)
-		{
-			$("#checking-log").prepend("<a href='"+ data.url +"'>" + data.url + "</a>" + "<br/>");
-		});
-
-		socket.on('rps', function(data)
-		{
-			rpsChart.series[0].addPoint([(new Date()).getTime(), parseInt(data.rps)], true, true)
-		})
-
-		socket.on('got-404', function(data)
-		{
-			$("#404").prepend(data.url + " [<a href='' target='_blank'>"+data.source+"</a>] <hr>");
-		});
 	</script>
 
     <style>
@@ -69,7 +37,7 @@
 					<span class="icon-bar"></span>
 				</a>
 
-<div id="cont"></div>
+				<div id="cont"></div>
 
 				<a class="brand" href="/">Scraping center</a>
 				<div class="nav-collapse collapse">
@@ -84,5 +52,7 @@
 	<% if(typeof body!="undefined") { %>
 		<%- body %>
 	<% } %>
+
+	<script type="text/javascript" src="/js/main.js"></script>
 </body>
 </html>
