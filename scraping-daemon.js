@@ -29,7 +29,7 @@ process.on("message", function(data)
 			break;
 
 		case "start":
-			fullUrl	   = data.url;
+			fullUrl    = data.url;
 			scrapeHost = url.parse(data.url).host;
 
 			Links404Model 	  = mongoose.model("links_404_" + scrapeHost, new mongoose.Schema({url:String, source:String}));
@@ -61,7 +61,7 @@ function sendGeneralStats()
 			process.send(
 			{
 				message: 'general-stats',
-				memory: bytesToSize(process.memoryUsage().rss), 
+				memory: bytesToSize(process.memoryUsage().rss),
 				requests: requestsRunning,
 				grabbed: count_grabbed,
 				tocheck: count_check,
@@ -77,7 +77,7 @@ function sendGeneralStats()
 // {
 // 	io.sockets.emit("rps", {rps: requestsPerSecond});
 // 	requestsPerSecond = 0;
-// }, 
+// },
 // 1000)
 
 function checkUrl()
@@ -190,7 +190,7 @@ function check_link(lnk)
 function make_request(protocol, host, path, callback)
 {
 	var opts = {
-		host: host, 
+		host: host,
 		port: 80,
 		path: path,
 		method: "GET"
@@ -213,7 +213,7 @@ function make_request(protocol, host, path, callback)
 			callback(res.statusCode, data, (protocol+"//"+host+path), res.headers);
 		});
 	});
-	
+
 	req.on('error', function(err) {
 		console.log("ERR: %s", err, opts);
 	});
@@ -242,27 +242,27 @@ function randomString(len)
 }
 
 function bytesToSize(bytes, precision)
-{  
+{
     var kilobyte = 1024;
     var megabyte = kilobyte * 1024;
     var gigabyte = megabyte * 1024;
     var terabyte = gigabyte * 1024;
-   
+
     if ((bytes >= 0) && (bytes < kilobyte)) {
         return bytes + ' B';
- 
+
     } else if ((bytes >= kilobyte) && (bytes < megabyte)) {
         return (bytes / kilobyte).toFixed(precision) + ' KB';
- 
+
     } else if ((bytes >= megabyte) && (bytes < gigabyte)) {
         return (bytes / megabyte).toFixed(precision) + ' MB';
- 
+
     } else if ((bytes >= gigabyte) && (bytes < terabyte)) {
         return (bytes / gigabyte).toFixed(precision) + ' GB';
- 
+
     } else if (bytes >= terabyte) {
         return (bytes / terabyte).toFixed(precision) + ' TB';
- 
+
     } else {
         return bytes + ' B';
     }
