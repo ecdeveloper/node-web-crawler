@@ -49,7 +49,7 @@ process.on("message", function(data)
 			setInterval(checkUrl, 10);
 			break;
 	}
-})
+});
 
 
 function sendGeneralStats()
