@@ -18,7 +18,7 @@ function getHomePage(req, res) {
 function postAddScraper(req, res)
 {
 	var url   = req.body.url;
-	var child = child_process.fork("scraping-daemon.js", ["-url=" + url]);
+	var child = child_process.fork("crawling-daemon.js", ["-url=" + url]);
 	
 	child.send(
 		{
@@ -32,7 +32,14 @@ function postAddScraper(req, res)
 		switch (data.message)
 		{
 			case "general-stats":
-				io.sockets.emit('general-stats', data);
+				res.render("partials/scraper-stats-row", {data: data, layout: false}, function(err, html) {
+					if (err != null)
+						return;
+
+					data.html = html;
+					io.sockets.emit('general-stats', data);
+				});
+				
 				break;
 		}
 	})

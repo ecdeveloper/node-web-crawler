@@ -5,13 +5,16 @@ socket.on('general-stats', function (data)
 
 	// data.max_threads
 
+	data.row_id = host;
+
 	if (!$("#scraper-" + host).length)
-		$("#active-scrapers-body").append(
-			'<tr id="scraper-'+host+'"><td><a href="#">'+ data.host +'</a></td>'+
-			'<td>scraping</td> <td class="general-stats">'+ general_stats +'</td>'+
-			'<td> <button class="btn btn-primary">Pause</button> <button class="btn btn-danger">Stop</button></td>'+
-			'</tr>'
-			)
+		$("#active-scrapers-body").append(data.html)
+		// $("#active-scrapers-body").append(
+		// 	'<tr id="scraper-'+host+'"><td><a href="#">'+ data.host +'</a></td>'+
+		// 	'<td>scraping</td> <td class="general-stats">'+ general_stats +'</td>'+
+		// 	'<td> <button class="btn btn-primary">Pause</button> <button class="btn btn-danger">Stop</button></td>'+
+		// 	'</tr>'
+		// 	)
 	else
 		$("#scraper-" + host + " .general-stats").html(general_stats);
 });
