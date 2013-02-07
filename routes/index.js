@@ -32,6 +32,7 @@ function postAddScraper(req, res)
 		switch (data.message)
 		{
 			case "general-stats":
+				data.row_id = data.host.replace(/\./g,"");
 				res.render("partials/scraper-stats-row", {data: data, layout: false}, function(err, html) {
 					if (err != null)
 						return;
