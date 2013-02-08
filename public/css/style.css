@@ -1,8 +1,22 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+	padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
 }
 
-a {
-  color: #00B7FF;
+#toggle-create-crawler-options:hover {
+	text-decoration: none;
+}
+
+#toggle-create-crawler-options {
+    background: url(/collapse-sprite.png) no-repeat left -15px;
+    padding-left: 20px;
+    margin-bottom: 10px;
+}
+
+#toggle-create-crawler-options.collapsed{ background: url(/collapse-sprite.png) no-repeat left 2px; }
+#toggle-create-crawler-options.expanded{ background: url(/collapse-sprite.png) no-repeat left -15px; }
+
+#create-crawler-options {
+	margin-top: 10px;
+	border: 1px solid #DDD;
+	padding: 10px;
 }

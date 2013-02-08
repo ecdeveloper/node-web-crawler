@@ -2,8 +2,8 @@
 	<td>
 		<a href="#"><%= data.host %></a>
 	</td>
-	<td>scraping</td>
-	<td class="general-stats"><%= data.general_stats %></td>
+	<td class="crawling-status"><span class="label label-info">crawling</span></td>
+	<td class="general-stats">processing...</td>
 	<td>
 		<button class="btn btn-primary pause-crawling" data-host_id="<%= data.row_id %>">Pause</button>
 		<button class="btn btn-danger stop-crawling" data-host_id="<%= data.row_id %>">Stop</button>

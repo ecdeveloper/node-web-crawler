@@ -1,18 +1,42 @@
 <div class="container">
-	<h1>Active scrapers are here</h1>
 	<p>
 		<form class="form-inline" method="POST" action="/add">
 			<fieldset>
-				<legend>Scrape a website</legend>
+				<legend>Crawl a website</legend>
 				<input type="text" class="input-large" name="url" placeholder="Address">
-				<button type="submit" class="btn">Scrape it!</button>
+				<label class="checkbox inline">
+					<input type="checkbox" name="clean_crawl" value="1"> Clean crawl
+				</label>
 			</fieldset>
+			
+			<br/>
+			<a href="#" id="toggle-create-crawler-options" class="collapsed">options</a>
+			<div id="create-crawler-options" style="display:none;">
+				<label class="checkbox inline">
+					<input type="checkbox" name="create_crawler_sitemap" value="1"> Generate sitemap
+				</label>
+
+				<br><br>
+
+				<select name="create_crawler_depth">
+					<option value="0">Crawling depth...</option>
+					<option value="1">1</option>
+					<option value="2">2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+				</select>
+			</div>
+			
+			<div style="padding-top: 10px;">
+				<button type="submit" class="btn">Start crawling</button>
+			</div>
 		</form>
 	</p>
 
 	<p>
 		<fieldset>
-			<legend>Active scrapers</legend>
+			<legend>Active crawlers</legend>
 			<table class="table table-bordered table-striped">
 				<thead>
 					<tr>

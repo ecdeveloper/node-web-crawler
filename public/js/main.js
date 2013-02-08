@@ -1,18 +1,18 @@
 $(document).ready(function()
 {
+	$(document).on("click", "#toggle-create-crawler-options", toggleNewCrawlerOptions);
 	$(document).on("click", ".pause-crawling", pauseCrawling);
 
 	socket.on('general-stats', function (data)
 	{
-		var row_id = data.host.replace(/\./g,""),
-			general_stats = 'mem: '+ data.memory +' / Reqs: '+ data.requests;
+		var row_id = data.host.replace(/\./g,"");
 
 		data.row_id = row_id;
 
 		if (!$("#scraper-" + row_id).length)
 			$("#active-scrapers-body").append(data.html)
 		else
-			$("#scraper-" + row_id + " .general-stats").html(general_stats);
+			$("#scraper-" + row_id + " .general-stats").html(data.stats_html);
 	});
 
 	socket.on('checking', function(data)
@@ -27,12 +27,31 @@ $(document).ready(function()
 
 	socket.on('got-404', function(data)
 	{
-		$("#404").prepend(data.url + " [<a href='' target='_blank'>"+data.source+"</a>] <hr>");
+		// $("#404").prepend(data.url + " [<a href='' target='_blank'>"+data.source+"</a>] <hr>");
 	});
+
+	socket.on('done-crawling', function(data)
+	{
+		var row_id = data.host.replace(/\./g,"");
+		$("#scraper-" + row_id + " .crawling-status").html('<span class="label label-success">done</span>')
+	})
+
+	socket.on('sitemap-ready', function(data)
+	{
+		$("body").append("<a href='/"+ data.path +"'>Download sitemap</a>");
+	})
 })
 
 
 function pauseCrawling()
 {
 	socket.emit("pause-crawling", {host_id: $(this).data("host_id")})
+}
+
+function toggleNewCrawlerOptions()
+{
+	var toggler = $(this);
+	 $('#create-crawler-options').slideToggle(function(){
+	 	toggler.removeClass("collapsed expanded").addClass( ($(this).is(":visible")) ? "expanded" : "collapsed" );
+	 });
 }
