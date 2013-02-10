@@ -12,7 +12,7 @@ var	util 	= require('util'),
 mongoose.connect('mongodb://localhost/search_for_404_v4');
 
 var scrapeHost = "", max_depth, create_sitemap, link, auth = {},
-	Links404Model, LinksCheckModel, LinksGrabbedModel,
+	LinksCheckModel, LinksGrabbedModel,
 	requestsRunning = 0, requestsPerSecond = 0, maxThreads = 20,
 	checkUrlInterval = null, processingDOM = false;
 
@@ -35,19 +35,17 @@ process.on("message", function(data)
 
 			scrapeHost = url.parse(data.url).host;
 
-			Links404Model 	  = mongoose.model("links_404_" + scrapeHost, new mongoose.Schema({url:String, source:String}));
 			LinksCheckModel   = mongoose.model("links_check_" + scrapeHost, new mongoose.Schema({ url: { type: String, index: { unique: true } }, source: String, from_redirect: {type: Boolean, default: false} }));
-			LinksGrabbedModel = mongoose.model("links_grabbed_" + scrapeHost, new mongoose.Schema({url: { type: String, index: { unique: true }}, source: String, content_type: String, http_status: Number }));
+			LinksGrabbedModel = mongoose.model("links_grabbed_" + scrapeHost, new mongoose.Schema({url: { type: String, index: { unique: true }}, source: String, content_type: String, http_status: Number, depth_level: Number }));
 
 			if (data.clean) {
-				Links404Model.find().remove();
 				LinksCheckModel.find().remove();
 				LinksGrabbedModel.find().remove();
 			}
 
 			(new LinksCheckModel({url: data.url})).save(function()
 				{
-					util.log("Start scraping "+ scrapeHost +"...");
+					util.log("Start crawling "+ scrapeHost +"...");
 
 					setInterval(sendGeneralStats, 3000);
 					checkUrlInterval = setInterval(checkUrl, 10);
@@ -154,6 +152,9 @@ function checkUrl()
 				if (doc==null)
 					return;
 
+				if (statusCode == 404)
+					process.send({message: "got-404", url: reqUrl, source: doc.source})
+
 				doc.http_status = statusCode;
 				doc.content_type = headers['content-type'];
 				doc.save();
@@ -163,17 +164,7 @@ function checkUrl()
 			if (headers['content-type'].indexOf("text/html") != 0)
 				return;
 
-			if( statusCode == 404 ) {
-				LinksGrabbedModel.findOne({url: reqUrl}, function(err, doc) {
-					if ( doc != null ) {
-						(new Links404Model({url:reqUrl, source:doc.source})).save();
-						process.send({message: "got-404", url: reqUrl, source: doc.source})
-					}
-				});
-
-				return;
-			}
-			else if ( [301,302,303].indexOf(statusCode) > -1 ) {
+			if ( [301,302,303].indexOf(statusCode) > -1 ) {
 				var redir_location = url.parse(headers.location);
 				if (redir_location.host == undefined) {
 					redir_location.host = url.parse(reqUrl).host;
