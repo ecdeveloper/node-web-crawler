@@ -13,12 +13,12 @@ $(document).ready(function()
 			$("#active-scrapers-body").append(data.html)
 		else
 			$("#scraper-" + row_id + " .general-stats").html(data.stats_html);
-	});
+	})
 
 	socket.on('checking', function(data)
 	{
 		$("#checking-log").prepend("<a href='"+ data.url +"'>" + data.url + "</a>" + "<br/>");
-	});
+	})
 
 	socket.on('rps', function(data)
 	{
@@ -28,7 +28,18 @@ $(document).ready(function()
 	socket.on('got-404', function(data)
 	{
 		// $("#404").prepend(data.url + " [<a href='' target='_blank'>"+data.source+"</a>] <hr>");
-	});
+	})
+
+	socket.on('auth-required', function(data)
+	{
+		// alert("Auth required");
+		var row_id = data.host.replace(/\./g,"");
+
+		if (!$("#scraper-" + row_id).length)
+			$("#active-scrapers-body").append(data.html)
+		
+		$("#scraper-" + row_id + " .crawling-status").html('<span class="label label-important">bad auth</span>')		
+	})
 
 	socket.on('done-crawling', function(data)
 	{

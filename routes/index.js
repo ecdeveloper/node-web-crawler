@@ -19,23 +19,47 @@ function getHomePage(req, res) {
 function postAddScraper(req, res)
 {
 	var url   		   = req.body.url,
+		auth_user	   = req.body.auth_user,
+		auth_pass	   = req.body.auth_pass,
 		depth 		   = parseInt(req.body.create_crawler_depth),
 		create_sitemap = req.body.create_crawler_sitemap == 1,
 		clean 		   = req.body.clean_crawl == 1;
 
 	var child = child_process.fork("crawling-daemon.js");
 	
+	if (auth_user!="" && auth_pass!="")
+		child.send(
+		{
+			action: "setAuth",
+			auth_user: auth_user,
+			auth_pass: auth_pass
+		})
+
 	child.send(
 		{
 			action: "start",
 			url: url,
-			clean: clean
+			clean: clean,
+			depth: depth
 		});
 
 	child.on("message", function(data)
 	{
 		switch (data.message)
 		{
+			case "auth-required":
+				data.row_id = data.host.replace(/\./g,"");
+				res.render("partials/scraper-stats-row", {data: data, layout: false}, function(err, html)
+				{
+					if (err != null)
+						return;
+
+					data.html = html;
+					io.sockets.emit('auth-required', data);
+				});
+
+				break;
+
 			case "general-stats":
 				data.row_id = data.host.replace(/\./g,"");
 				res.render("partials/scraper-stats-row", {data: data, layout: false}, function(err, html)
