@@ -17,7 +17,7 @@ mongoose.connect('mongodb://localhost/search_for_404_v4');
 
 var scrapeHost = "", max_depth, create_sitemap, link, auth = {},
 	LinksCheckModel, LinksGrabbedModel,
-	requestsRunning = 0, requestsRunningPool = [], requestsPerSecond = 0, maxThreads = 10,
+	requestsRunning = 0, requestsRunningPool = [], requestsPerSecond = 0, maxThreads = 5,
 	checkUrlInterval = null, processingDOM = false;
 
 process.on("message", function(data)
@@ -72,7 +72,7 @@ process.on("message", function(data)
       					'<loc>'+ doc.url +'</loc>' +
       					// '<lastmod>---</lastmod>' +
       					// '<changefreq>---</changefreq>' +
-      					// '<priority>---</priority>' +
+      					'<priority>0.7</priority>' +
    					'</url>';
 				})
 
