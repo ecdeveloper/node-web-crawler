@@ -53,7 +53,7 @@ process.on("message", function(data)
 					console.log("First link in queue: [err/doc]", err, doc);
 					util.log("Start crawling "+ scrapeHost +"...");
 
-					// sendGeneralStats();
+					sendGeneralStats();
 					setInterval(sendGeneralStats, 3000);
 					checkUrlInterval = setInterval(checkUrl, 10);
 				});
@@ -164,6 +164,9 @@ function checkUrl()
 
 			make_request(urlObj.protocol, urlObj.host, urlObj.path, depth_level, function(err, statusCode, body, reqUrl, reqUrlDepth, headers)
 			{
+
+console.log(err, statusCode);
+
 				processingDOM = true;
 				requestsPerSecond++;
 				requestsRunning--;
@@ -171,6 +174,7 @@ function checkUrl()
 
 				if (err) {
 					processingDOM = false;
+					process.send({message: "error", host: scrapeHost, url: reqUrl, source: doc.source})
 					return;
 				}
 
@@ -197,7 +201,7 @@ function checkUrl()
 				})
 
 				// Just skip checking body of images, documents, ... (e.g. application/pdf, image/png, etc)
-				if (headers['content-type'].indexOf("text/html") != 0) {
+				if (typeof headers['content-type']!="undefined" && headers['content-type'].indexOf("text/html") != 0) {
 					processingDOM = false;
 					return;
 				}
@@ -208,7 +212,9 @@ function checkUrl()
 						redir_location.host = url.parse(reqUrl).host;
 					}
 
-					(new LinksCheckModel({url:redir_location.href, source: reqUrl, depth_level: reqUrlDepth, from_redirect: true})).save();
+					if (redir_location.host == scrapeHost)
+						(new LinksCheckModel({url:redir_location.href, source: reqUrl, depth_level: reqUrlDepth, from_redirect: true})).save();
+					
 					processingDOM = false;
 					return;
 				}
@@ -306,6 +312,8 @@ function make_request(protocol, host, path, depth, callback)
 	var req = http.request(opts, function(res)
 	{
 		var data = "";
+
+// console.log("STATUS CODE: ", res.headers.location);
 
 		if (res.statusCode == 401)
 			callback(false, res.statusCode, null, (protocol+"//"+host+path), depth, res.headers);

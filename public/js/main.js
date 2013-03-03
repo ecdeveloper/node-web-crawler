@@ -30,6 +30,12 @@ $(document).ready(function()
 		// $("#404").prepend(data.url + " [<a href='' target='_blank'>"+data.source+"</a>] <hr>");
 	})
 
+	socket.on('error', function(data)
+	{
+		var row_id = data.host.replace(/\./g,"");
+		$("#scraper-" + row_id + " .crawling-status").html('<span class="label label-success">error</span>')		
+	})
+
 	socket.on('auth-required', function(data)
 	{
 		// alert("Auth required");
@@ -45,6 +51,7 @@ $(document).ready(function()
 	{
 		var row_id = data.host.replace(/\./g,"");
 		$("#scraper-" + row_id + " .crawling-status").html('<span class="label label-success">done</span>')
+		$("#scraper-" + row_id + " .general-stats").html('');
 	})
 
 	socket.on('sitemap-ready', function(data)

@@ -78,12 +78,17 @@ function postAddScraper(req, res)
 						io.sockets.emit('general-stats', data);
 					})
 				});
-				
+				break;
+
+			case "error":
+				io.sockets.emit('error', data);				
 				break;
 
 			case "done-crawling":
 				if (create_sitemap)
 					child.send({ action: "createSitemap" });
+				else
+					child.kill(); // Terminate crawling daemon
 
 				io.sockets.emit('done-crawling', data);
 				break;
@@ -91,18 +96,21 @@ function postAddScraper(req, res)
 			case "sitemap-created":
 
 				var sitemap_path = "public/sitemaps/sitemap_"+ data.host +".xml";
-				fs.writeFile(sitemap_path, data.content, function(err) {
-				    if(err) {
+				fs.writeFile(sitemap_path, data.content, function(err)
+				{
+				    if(err)
 				        console.log(err);
-				    } else {
+				   	else
 				        io.sockets.emit('sitemap-ready', {path: sitemap_path.replace("public/", "")})
-				    }
+
+				    // Terminate crawling daemon
+					child.kill();
 				}); 
 
 				break;
 		}
 	})
 
-	child_processes[url] = child;
+	// child_processes[url] = child;
 	res.redirect("/");
 }
