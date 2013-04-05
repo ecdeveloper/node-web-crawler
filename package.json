@@ -7,11 +7,11 @@
   },
   "dependencies": {
     "express": "3.x",
-    "express-partials": "0.0.6",
-    "mongoose": "3.1.2",
-    "socket.io": "0.9.13",
-    "named-argv": "0.1.0",
-    "jsdom": "0.3.4",
-    "ejs": "0.7.2"
+    "express-partials": "0.x.x",
+    "mongoose": "3.x.x",
+    "socket.io": "0.x.x",
+    "named-argv": "0.x.x",
+    "jsdom": "0.x.x",
+    "ejs": "0.x.x"
   }
 }
