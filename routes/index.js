@@ -84,14 +84,15 @@ function postAddScraper(req, res)
 				io.sockets.emit('error', data);				
 				break;
 
-			case "done-crawling":
+			case "done-crawling": case "stop-crawling": 
 				if (create_sitemap)
 					child.send({ action: "createSitemap" });
 				else
 					child.kill(); // Terminate crawling daemon
 
-				io.sockets.emit('done-crawling', data);
+				io.sockets.emit(data.message, data); // done-crawling | stop-crawling
 				break;
+
 
 			case "sitemap-created":
 

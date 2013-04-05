@@ -86,7 +86,7 @@ process.on("message", function(data)
 
 function sendGeneralStats()
 {
-	console.log("Send General Stats");
+	// console.log("Send General Stats");
 	LinksGrabbedModel.count({}, function(err, countGrabbed)
 	{
 		LinksCheckModel.count({}, function(err, countCheck)
@@ -140,7 +140,7 @@ function checkUrl()
 		doc.remove(function()
 		{
 			if ( requestsRunningPool.indexOf(link) > -1 ) {
-				console.log("Duplicated link request", link);
+				// console.log("Duplicated link request", link);
 				return;
 			}
 
@@ -164,9 +164,6 @@ function checkUrl()
 
 			make_request(urlObj.protocol, urlObj.host, urlObj.path, depth_level, function(err, statusCode, body, reqUrl, reqUrlDepth, headers)
 			{
-
-console.log(err, statusCode);
-
 				processingDOM = true;
 				requestsPerSecond++;
 				requestsRunning--;

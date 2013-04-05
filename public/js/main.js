@@ -2,6 +2,7 @@ $(document).ready(function()
 {
 	$(document).on("click", "#toggle-create-crawler-options", toggleNewCrawlerOptions);
 	$(document).on("click", ".pause-crawling", pauseCrawling);
+	$(document).on("click", ".stop-crawling", stopCrawling);
 
 	socket.on('general-stats', function (data)
 	{
@@ -38,7 +39,6 @@ $(document).ready(function()
 
 	socket.on('auth-required', function(data)
 	{
-		// alert("Auth required");
 		var row_id = data.host.replace(/\./g,"");
 
 		if (!$("#scraper-" + row_id).length)
@@ -54,6 +54,13 @@ $(document).ready(function()
 		$("#scraper-" + row_id + " .general-stats").html('');
 	})
 
+	socket.on('stop-crawling', function(data)
+	{
+		var row_id = data.host.replace(/\./g,"");
+		$("#scraper-" + row_id + " .crawling-status").html('<span class="label label-important">stopped</span>')
+		$("#scraper-" + row_id + " .general-stats").html('');
+	})
+
 	socket.on('sitemap-ready', function(data)
 	{
 		$("body").append("<a href='/"+ data.path +"'>Download sitemap</a>");
@@ -61,13 +68,15 @@ $(document).ready(function()
 })
 
 
-function pauseCrawling()
-{
+function pauseCrawling() {
 	socket.emit("pause-crawling", {host_id: $(this).data("host_id")})
 }
 
-function toggleNewCrawlerOptions()
-{
+function stopCrawling() {
+	socket.emit("stop-crawling", {host_id: $(this).data("host_id")})
+}
+
+function toggleNewCrawlerOptions() {
 	var toggler = $(this);
 	 $('#create-crawler-options').slideToggle(function(){
 	 	toggler.removeClass("collapsed expanded").addClass( ($(this).is(":visible")) ? "expanded" : "collapsed" );
