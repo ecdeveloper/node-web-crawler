@@ -156,7 +156,7 @@ function checkUrl()
 			});
 
 			var urlObj = url.parse(link);
-			// console.log("Starting request...", link);
+			console.log("Starting request...", link);
 			requestsRunning++;
 			requestsRunningPool.push(link);
 
@@ -164,12 +164,14 @@ function checkUrl()
 
 			make_request(urlObj.protocol, urlObj.host, urlObj.path, depth_level, function(err, statusCode, body, reqUrl, reqUrlDepth, headers)
 			{
+				console.log(statusCode);
+				
 				processingDOM = true;
 				requestsPerSecond++;
 				requestsRunning--;
 				requestsRunningPool.splice( requestsRunningPool.indexOf(reqUrl), 1 )
 
-				if (err) {
+				if (err || statusCode == 500) {
 					processingDOM = false;
 					process.send({message: "error", host: scrapeHost, url: reqUrl, source: doc.source})
 					return;
@@ -231,7 +233,7 @@ function checkUrl()
 
 						var $ = window.$;
 						var links_found = $("a").length;
-
+						
 						$("a").each(function()
 						{
 							var lnk = $(this).attr("href").replace(new RegExp("#(.*)"), "");
@@ -242,7 +244,7 @@ function checkUrl()
 							}
 
 							(function(add_link, source_link, source_depth) {
-
+						
 								// If max_depth is set and current link's depth is greater - skip it
 								if ( max_depth > 0 && parseInt(source_depth+1) > max_depth ) {
 									processingDOM = (--links_found > 0);
