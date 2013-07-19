@@ -218,6 +218,11 @@ function checkUrl()
 					return;
 				}
 
+				if (!body) {
+					processingDOM = false;
+					return;
+				}
+
 				jsdom.env({
 					html: body,
 					scripts: ["http://code.jquery.com/jquery.js"],
@@ -236,6 +241,10 @@ function checkUrl()
 						
 						$("a").each(function()
 						{
+							if (typeof($(this).attr('href'))=='undefined') {
+								processingDOM = (--links_found > 0);
+								return;
+							}
 							var lnk = $(this).attr("href").replace(new RegExp("#(.*)"), "");
 
 							if ((lnk = check_link(lnk)) == false) {
