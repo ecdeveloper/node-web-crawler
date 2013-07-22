@@ -247,7 +247,7 @@ function checkUrl()
 							}
 							var lnk = $(this).attr("href").replace(new RegExp("#(.*)"), "");
 
-							if ((lnk = check_link(lnk)) == false) {
+							if ((lnk = check_link(lnk, reqUrl)) == false) {
 								processingDOM = (--links_found > 0);
 								return;
 							}
@@ -292,17 +292,47 @@ function checkUrl()
 	});
 };
 
-
-function check_link(lnk)
-{
-	if( lnk.indexOf("/")==0 )
-		lnk = "http://" + scrapeHost + lnk;
-
-	if( lnk==undefined || ["#", ""].indexOf(lnk)!=-1 || (lnk.indexOf("http://" + scrapeHost)!=0 && lnk.indexOf("https://"+scrapeHost)!=0) ) {
-		return false;
-	}
-
-	return lnk;
+/**
+ * Check a link from a scraped page to make sure it is valid, and then
+ * normalize it to an absolute url.
+ *
+ * @param {String} link The link scraped from the page
+ * @param {String} parent_link The link of the page that "link" was scraped from
+ *
+ * @return {String} The revised link
+ */
+function check_link(link, parent_link) {
+    // check for "empty" links
+    if (link===undefined) {
+        return false;
+    } else if (link==='' || link=='#') {
+        return false;
+    }
+    // parse the link
+    parts = url.parse(link);
+    // check the scheme
+    if (parts.protocol=='mailto' || parts.protocol=='javascript' || parts.protocol=='ftp') {
+        // incompatible protocol
+        return false;
+    } else if (parts.protocol=='http' || parts.protocol=='https') {
+        // make sure host is our domain
+        if (parts.host!=scrapeHost) {
+            return false;
+        }
+    } else if (link.indexOf('//')===0) {
+        // handle schema-less; ensure host is ours
+        if (link.indexOf('//' + scrapeHost)!==0) {
+            return false;
+        }
+        link = 'http:' + link;
+    } else if (parts.protocol) {
+        // unknown protocol
+        return false;
+    } else {
+        // relative link
+        link = url.resolve(parent_link, link);
+    }
+    return link;
 }
 
 function make_request(protocol, host, path, depth, callback)
