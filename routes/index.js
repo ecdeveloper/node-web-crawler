@@ -13,7 +13,11 @@ module.exports = function(app) {
 }
 
 function getHomePage(req, res) {
-	res.render('index');
+	var port = res.app.settings.config.port;
+
+	res.render('index', {
+		port: port
+	});
 }
 
 function postAddScraper(req, res)
@@ -23,9 +27,16 @@ function postAddScraper(req, res)
 		auth_pass	   = req.body.auth_pass,
 		depth 		   = parseInt(req.body.create_crawler_depth),
 		create_sitemap = req.body.create_crawler_sitemap == 1,
-		clean 		   = req.body.clean_crawl == 1;
+		clean 		   = req.body.clean_crawl == 1,
+		config         = res.app.settings.config;
 
 	var child = child_process.fork("crawling-daemon.js");
+
+	// setup config
+	child.send({
+		action: "setConfig",
+		config: config
+	});
 	
 	if (auth_user!="" && auth_pass!="")
 		child.send(
