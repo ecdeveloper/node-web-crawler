@@ -2,28 +2,41 @@
 	Scraper app. Only runs as child forked process.
 */
 
-var	util 	= require('util'),
-	http 	= require('http'),
-	url 	= require('url'),
-	mongoose= require('mongoose'),
-	argv 	= require('named-argv'),
-	jsdom	= require('jsdom');
-
-mongoose.connect('mongodb://localhost/search_for_404_v4');
+var	util 	 = require('util'),
+	http 	 = require('http'),
+	url 	 = require('url'),
+	mongoose = require('mongoose'),
+	argv 	 = require('named-argv'),
+	jsdom	 = require('jsdom');
 
 /*
 	requestsRunningPool: array of links are requesting now
 */
 
-var scrapeHost = "", max_depth, create_sitemap, link, auth = {},
-	LinksCheckModel, LinksGrabbedModel,
-	requestsRunning = 0, requestsRunningPool = [], requestsPerSecond = 0, maxThreads = 5,
-	checkUrlInterval = null, processingDOM = false;
+var scrapeHost = "",
+	max_depth,
+	create_sitemap,
+	link,
+	auth = {},
+	LinksCheckModel,
+	LinksGrabbedModel,
+	requestsRunning = 0,
+	requestsRunningPool = [],
+	requestsPerSecond = 0,
+	maxThreads = 5,
+	checkUrlInterval = null,
+	processingDOM = false,
+	config;
 
 process.on("message", function(data)
 {
 	switch (data.action)
 	{
+		case "setConfig":
+			config = data.config;
+			mongoose.connect(config.db.service+'://'+config.db.host+'/'+config.db.database);
+			break;
+
 		case "setAuth":
 			auth.user = data.auth_user;
 			auth.pass = data.auth_pass;
