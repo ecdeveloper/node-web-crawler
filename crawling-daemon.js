@@ -69,10 +69,10 @@ process.on("message", function(data)
 				{
 					sitemap_content += 
 					'<url>' +
-      					'<loc>'+ doc.url +'</loc>' +
-      					// '<lastmod>---</lastmod>' +
-      					// '<changefreq>---</changefreq>' +
-      					'<priority>0.7</priority>' +
+	  					'<loc>'+ doc.url +'</loc>' +
+	  					// '<lastmod>---</lastmod>' +
+	  					// '<changefreq>---</changefreq>' +
+	  					'<priority>0.7</priority>' +
    					'</url>';
 				})
 
@@ -302,37 +302,35 @@ function checkUrl()
  * @return {String} The revised link
  */
 function check_link(link, parent_link) {
-    // check for "empty" links
-    if (link===undefined) {
-        return false;
-    } else if (link==='' || link=='#') {
-        return false;
-    }
-    // parse the link
-    parts = url.parse(link);
-    // check the scheme
-    if (parts.protocol=='mailto' || parts.protocol=='javascript' || parts.protocol=='ftp') {
-        // incompatible protocol
-        return false;
-    } else if (parts.protocol=='http' || parts.protocol=='https') {
-        // make sure host is our domain
-        if (parts.host!=scrapeHost) {
-            return false;
-        }
-    } else if (link.indexOf('//')===0) {
-        // handle schema-less; ensure host is ours
-        if (link.indexOf('//' + scrapeHost)!==0) {
-            return false;
-        }
-        link = 'http:' + link;
-    } else if (parts.protocol) {
-        // unknown protocol
-        return false;
-    } else {
-        // relative link
-        link = url.resolve(parent_link, link);
-    }
-    return link;
+	// check for "empty" links
+	if (link===undefined) {
+		return false;
+	} else if (link==='' || link=='#') {
+		return false;
+	}
+	// parse the link
+	parts = url.parse(link);
+
+	// check the scheme
+	if (parts.protocol=='http' || parts.protocol=='https') {
+		// make sure host is our domain
+		if (parts.host!=scrapeHost) {
+			return false;
+		}
+	} else if (link.indexOf('//')===0) {
+		// handle schema-less; ensure host is ours
+		if (link.indexOf('//' + scrapeHost)!==0) {
+			return false;
+		}
+		link = 'http:' + link;
+	} else if (parts.protocol) {
+		// unknown or unsupported protocol
+		return false;
+	} else {
+		// relative link
+		link = url.resolve(parent_link, link);
+	}
+	return link;
 }
 
 function make_request(protocol, host, path, depth, callback)
@@ -397,27 +395,27 @@ function randomString(len)
 
 function bytesToSize(bytes, precision)
 {
-    var kilobyte = 1024;
-    var megabyte = kilobyte * 1024;
-    var gigabyte = megabyte * 1024;
-    var terabyte = gigabyte * 1024;
+	var kilobyte = 1024;
+	var megabyte = kilobyte * 1024;
+	var gigabyte = megabyte * 1024;
+	var terabyte = gigabyte * 1024;
 
-    if ((bytes >= 0) && (bytes < kilobyte)) {
-        return bytes + ' B';
+	if ((bytes >= 0) && (bytes < kilobyte)) {
+		return bytes + ' B';
 
-    } else if ((bytes >= kilobyte) && (bytes < megabyte)) {
-        return (bytes / kilobyte).toFixed(precision) + ' KB';
+	} else if ((bytes >= kilobyte) && (bytes < megabyte)) {
+		return (bytes / kilobyte).toFixed(precision) + ' KB';
 
-    } else if ((bytes >= megabyte) && (bytes < gigabyte)) {
-        return (bytes / megabyte).toFixed(precision) + ' MB';
+	} else if ((bytes >= megabyte) && (bytes < gigabyte)) {
+		return (bytes / megabyte).toFixed(precision) + ' MB';
 
-    } else if ((bytes >= gigabyte) && (bytes < terabyte)) {
-        return (bytes / gigabyte).toFixed(precision) + ' GB';
+	} else if ((bytes >= gigabyte) && (bytes < terabyte)) {
+		return (bytes / gigabyte).toFixed(precision) + ' GB';
 
-    } else if (bytes >= terabyte) {
-        return (bytes / terabyte).toFixed(precision) + ' TB';
+	} else if (bytes >= terabyte) {
+		return (bytes / terabyte).toFixed(precision) + ' TB';
 
-    } else {
-        return bytes + ' B';
-    }
+	} else {
+		return bytes + ' B';
+	}
 }
