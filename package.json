@@ -12,6 +12,8 @@
     "socket.io": "0.x.x",
     "named-argv": "0.x.x",
     "jsdom": "0.x.x",
-    "ejs": "0.x.x"
+    "ejs": "0.x.x",
+    "url": "0.x.x",
+    "underscore": "1.x.x"
   }
 }
