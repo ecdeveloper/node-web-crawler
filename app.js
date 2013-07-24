@@ -2,28 +2,17 @@
  * Module dependencies.
  */
 
-var express   = require('express')
-  , http      = require('http')
-  , path      = require('path')
-  , partials  = require('express-partials')
-  , config    = require('./config')
-  , app       = express();
-
-/**
- * Source: http://stackoverflow.com/a/7965071
- */
-function mergeRecursive(obj1, obj2) {
-    for (var p in obj2) {
-        if (obj2.hasOwnProperty(p)) {
-            obj1[p] = (typeof obj2[p] === 'object') ? mergeRecursive(obj1[p], obj2[p]) : obj2[p];
-        }
-    }
-    return obj1;
-}
+var express    = require('express')
+  , http       = require('http')
+  , path       = require('path')
+  , partials   = require('express-partials')
+  , underscore = require('underscore')
+  , config     = require('./config')
+  , app        = express();
 
 // set config by environment
 if (process.env.ENVIRONMENT!='default') {
-    app.config = mergeRecursive(config.default, config[process.env.ENVIRONMENT]);
+    app.config = underscore.extend(config.default, config[process.env.ENVIRONMENT]);
 } else {
     app.config = config.default;
 }
