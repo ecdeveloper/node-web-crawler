@@ -13,7 +13,7 @@ module.exports = function(app) {
 }
 
 function getHomePage(req, res) {
-	var port = res.app.settings.config.port;
+	var port = res.app.settings.config.server.port;
 
 	res.render('index', {
 		port: port
