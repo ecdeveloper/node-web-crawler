@@ -110,8 +110,15 @@ function postAddScraper(req, res)
 				var sitemap_path = "public/sitemaps/";
 				fs.exists(sitemap_path, function(exists) {
 					if (!exists) {
-						fs.mkdirSync(sitemap_path);
+						fs.mkdir(sitemap_path, wrtieSitemap);
+					} else {
+						wrtieSitemap();
 					}
+
+					// Terminate crawling daemon
+					child.kill();
+				});
+				function wrtieSitemap() {
 					var filename = "sitemap_"+ data.host +".xml";
 					fs.writeFile(sitemap_path + filename, data.content, function(err)
 					{
@@ -119,11 +126,9 @@ function postAddScraper(req, res)
 					        console.log(err);
 					   	else
 					        io.sockets.emit('sitemap-ready', {path: sitemap_path.replace("public/", "")})
+					});
 
-					    // Terminate crawling daemon
-						child.kill();
-					}); 
-				});
+}
 				break;
 		}
 	})
