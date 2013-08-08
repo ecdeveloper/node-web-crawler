@@ -110,15 +110,15 @@ function postAddScraper(req, res)
 				var sitemap_path = "public/sitemaps/";
 				fs.exists(sitemap_path, function(exists) {
 					if (!exists) {
-						fs.mkdir(sitemap_path, wrtieSitemap);
+						fs.mkdir(sitemap_path, writeSitemap);
 					} else {
-						wrtieSitemap();
+						writeSitemap();
 					}
 
 					// Terminate crawling daemon
 					child.kill();
 				});
-				function wrtieSitemap() {
+				function writeSitemap() {
 					var filename = "sitemap_"+ data.host +".xml";
 					fs.writeFile(sitemap_path + filename, data.content, function(err)
 					{
