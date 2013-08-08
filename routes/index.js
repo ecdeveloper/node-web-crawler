@@ -107,18 +107,23 @@ function postAddScraper(req, res)
 
 			case "sitemap-created":
 
-				var sitemap_path = "public/sitemaps/sitemap_"+ data.host +".xml";
-				fs.writeFile(sitemap_path, data.content, function(err)
-				{
-				    if(err)
-				        console.log(err);
-				   	else
-				        io.sockets.emit('sitemap-ready', {path: sitemap_path.replace("public/", "")})
+				var sitemap_path = "public/sitemaps/";
+				fs.exists(sitemap_path, function(exists) {
+					if (!exists) {
+						fs.mkdir(sitemap_path);
+					}
+					var filename = "sitemap_"+ data.host +".xml";
+					fs.writeFile(sitemap_path + filename, data.content, function(err)
+					{
+					    if(err)
+					        console.log(err);
+					   	else
+					        io.sockets.emit('sitemap-ready', {path: sitemap_path.replace("public/", "")})
 
-				    // Terminate crawling daemon
-					child.kill();
-				}); 
-
+					    // Terminate crawling daemon
+						child.kill();
+					}); 
+				});
 				break;
 		}
 	})
