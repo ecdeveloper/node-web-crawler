@@ -2,15 +2,23 @@
  * Module dependencies.
  */
 
-var express   = require('express')
-  , http      = require('http')
-  , path      = require('path')
-  , partials  = require('express-partials')
-  , config    = require('./config')
-  , app       = express();
+var express    = require('express')
+  , http       = require('http')
+  , path       = require('path')
+  , partials   = require('express-partials')
+  , underscore = require('underscore')
+  , config     = require('./config')
+  , app        = express();
 
-global.io = require('socket.io').listen(app.listen( config.port ));
+// set config by environment
+if (process.env.ENVIRONMENT!='default') {
+    app.config = underscore.extend(config.default, config[process.env.ENVIRONMENT]);
+} else {
+    app.config = config.default;
+}
 
+// setup socket io
+global.io = require('socket.io').listen(app.listen( app.config.server.port ));
 io.configure(function () {
 	io.set('transports', ['websocket', 'xhr-polling']);
 	io.set('log level', config.log_level);
@@ -24,13 +32,13 @@ io.sockets.on('connection', function (socket)
 
 // db connect
 var db = require('mongoose');
-db.connect(config.db.service+'://'+config.db.host+'/'+config.db.database);
+db.connect(app.config.db.service+'://'+app.config.db.host+'/'+app.config.db.database);
 
 app.configure(function() {
 	app.set('views', __dirname + '/views');
 	app.set('view engine', 'ejs');
 	app.set('view options', { layout:true, pretty: true });
-	app.set('config', config);
+	app.set('config', app.config);
 	app.set('db', db);
 	app.use(express.favicon());
 	app.use(express.logger('dev'));

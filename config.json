@@ -1,10 +1,19 @@
 /* Configurations */
 {
-  "log_level": 0,
-  "port": 3000,
-  "db": {
-    "service": "mongodb",
-    "host": "localhost",
-    "database": "search_for_404_v4"
+  "default": {
+    "log_level": 0,
+    "server": {
+      "scheme": "http",
+      "host": "localhost",
+      "port": 3000
+    },
+    "db": {
+      "service": "mongodb",
+      "host": "localhost",
+      "database": "search_for_404_v4"
+    }
+  },
+  "development": {
+    "log_level": 1
   }
 }
