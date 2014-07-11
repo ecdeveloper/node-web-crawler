@@ -20,14 +20,9 @@ if (process.env.ENVIRONMENT!='default') {
 // setup socket io
 global.io = require('socket.io').listen(app.listen( app.config.server.port ));
 
-// io.configure(function () {
-// 	io.set('transports', ['websocket', 'xhr-polling']);
-// 	io.set('log level', config.log_level);
-// 	io.set('force new connection', true);
-// });
-
 io.sockets.on('connection', function (socket) {
-	socket.on('setMaxThreads', function(data){  });
+	// @TODO: Implement setting of max threads
+	socket.on('setMaxThreads', function (data) {});
 });
 
 // db connect
@@ -37,7 +32,7 @@ db.connect(app.config.db.service+'://'+app.config.db.host+'/'+app.config.db.data
 app.configure(function() {
 	app.set('views', __dirname + '/views');
 	app.set('view engine', 'ejs');
-	app.set('view options', { layout:true, pretty: true });
+	app.set('view options', { layout: true, pretty: true });
 	app.set('config', app.config);
 	app.set('db', db);
 	app.use(express.favicon());

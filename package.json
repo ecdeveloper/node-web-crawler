@@ -1,6 +1,10 @@
 {
   "name": "node-web-scraper",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "author": {
+    "name": "Evgheni Chiriliuc",
+    "email": "ec.developer@gmail.com"
+  },
   "private": false,
   "scripts": {
     "start": "node app"
@@ -12,7 +16,6 @@
     "jsdom": "^0.11.1",
     "ejs": "^1.0.0",
     "express-partials": "^0.3.0",
-    "named-argv": "^0.1.0",
     "express": "^3.13.0"
   }
 }

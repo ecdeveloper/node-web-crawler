@@ -9,7 +9,7 @@
     "db": {
       "service": "mongodb",
       "host": "localhost",
-      "database": "search_for_404_v4"
+      "database": "node-crawler"
     }
   },
   "development": {

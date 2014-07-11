@@ -2,17 +2,12 @@
 	Scraper app. Only runs as child forked process.
 */
 
-var	util 	 = require('util'),
-	http 	 = require('http'),
-	https 	 = require('https'),
-	url 	 = require('url'),
+var	util = require('util'),
+	http = require('http'),
+	https = require('https'),
+	url = require('url'),
 	mongoose = require('mongoose'),
-	argv 	 = require('named-argv'),
-	jsdom	 = require('jsdom');
-
-/*
-	requestsRunningPool: array of links are requesting now
-*/
+	jsdom = require('jsdom');
 
 var scrapeHost = "",
 	max_depth,
@@ -22,7 +17,7 @@ var scrapeHost = "",
 	LinksCheckModel,
 	LinksGrabbedModel,
 	requestsRunning = 0,
-	requestsRunningPool = [],
+	requestsRunningPool = [], // array of links are requesting now
 	requestsPerSecond = 0,
 	maxThreads = 5,
 	checkUrlInterval = null,
