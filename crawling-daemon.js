@@ -4,6 +4,7 @@
 
 var	util 	 = require('util'),
 	http 	 = require('http'),
+	https 	 = require('https'),
 	url 	 = require('url'),
 	mongoose = require('mongoose'),
 	argv 	 = require('named-argv'),
@@ -28,10 +29,8 @@ var scrapeHost = "",
 	processingDOM = false,
 	config;
 
-process.on("message", function(data)
-{
-	switch (data.action)
-	{
+process.on("message", function(data) {
+	switch (data.action) {
 		case "setConfig":
 			config = data.config;
 			mongoose.connect(config.db.service+'://'+config.db.host+'/'+config.db.database);
@@ -47,22 +46,21 @@ process.on("message", function(data)
 			break;
 
 		case "start":
-			max_depth 	   = data.depth;
+			max_depth = data.depth;
 			create_sitemap = data.create_sitemap;
 
 			scrapeHost = url.parse(data.url).host;
 
-			LinksCheckModel   = mongoose.model("links_check_" + scrapeHost, new mongoose.Schema({ url: { type: String, index: { unique: true } }, source: String, from_redirect: {type: Boolean, default: false}, depth_level: Number }));
+			LinksCheckModel = mongoose.model("links_check_" + scrapeHost, new mongoose.Schema({ url: { type: String, index: { unique: true } }, source: String, from_redirect: {type: Boolean, default: false}, depth_level: Number }));
 			LinksGrabbedModel = mongoose.model("links_grabbed_" + scrapeHost, new mongoose.Schema({url: { type: String, index: { unique: true }}, source: String, content_type: String, http_status: Number, depth_level: Number }));
 
 			if (data.clean) {
-				LinksCheckModel.find().remove();
-				LinksGrabbedModel.find().remove();
+				LinksCheckModel.remove().exec();
+				LinksGrabbedModel.remove().exec();
 			}
 
 			// Add first url to `toCheckModel`
-			(new LinksCheckModel({url: data.url, depth_level: 0})).save(function(err, doc)
-				{
+			(new LinksCheckModel({url: data.url, depth_level: 0})).save(function(err, doc) {
 					console.log("First link in queue: [err/doc]", err, doc);
 					util.log("Start crawling "+ scrapeHost +"...");
 
@@ -75,11 +73,9 @@ process.on("message", function(data)
 
 		case "createSitemap":
 			LinksGrabbedModel.find({http_status: 200, content_type: new RegExp("^text/html;(.*)$")}).lean().exec(function (err, docs) {
-
 				var sitemap_content = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 
-				docs.forEach(function(doc)
-				{
+				docs.forEach(function(doc) {
 					sitemap_content += 
 					'<url>' +
 	  					'<loc>'+ doc.url +'</loc>' +
@@ -97,15 +93,10 @@ process.on("message", function(data)
 });
 
 
-function sendGeneralStats()
-{
-	// console.log("Send General Stats");
-	LinksGrabbedModel.count({}, function(err, countGrabbed)
-	{
-		LinksCheckModel.count({}, function(err, countCheck)
-		{
-			process.send(
-			{
+function sendGeneralStats() {
+	LinksGrabbedModel.count({}, function(err, countGrabbed) {
+		LinksCheckModel.count({}, function(err, countCheck) {
+			process.send({
 				message: 'general-stats',
 				memory: bytesToSize(process.memoryUsage().rss),
 				requests: requestsRunning,
@@ -118,51 +109,40 @@ function sendGeneralStats()
 	});
 }
 
-
-// setInterval(function()
-// {
-// 	io.sockets.emit("rps", {rps: requestsPerSecond});
-// 	requestsPerSecond = 0;
-// },
-// 1000)
-
-function checkUrl()
-{
-	LinksCheckModel.findOne({}, function(err, doc)
-	{
-		if( doc==null )
-		{
+function checkUrl() {
+	LinksCheckModel.findOne({}, function(err, doc) {
+		if( doc==null ) {
 			if (!processingDOM && requestsRunning == 0) {
 				console.log("Done crawling");
 				clearInterval(checkUrlInterval);
-				process.send({ message: 'done-crawling', host: scrapeHost })
+				LinksGrabbedModel.count({}, function(err, countGrabbed) {
+					process.send({ message: 'done-crawling', host: scrapeHost, processed: countGrabbed });
+				});
 			}
 
 			return;
 		}
 
-		var source_link = doc.source,
-			depth_level = doc.depth_level;
+		var source_link = doc.source;
+		var depth_level = doc.depth_level;
 
 		link = doc.url;
 
-		if( requestsRunning > maxThreads )
+		if( requestsRunning > maxThreads ) {
 			return;
+		}
 
 		// console.log(link, " removing...");
-		doc.remove(function()
-		{
+		doc.remove(function() {
 			if ( requestsRunningPool.indexOf(link) > -1 ) {
 				// console.log("Duplicated link request", link);
 				return;
 			}
 
-			// console.log(link, " removed");
 			// Keep processing once the link was removed from queue
 
 			// Save the link to GrabbedModel before starting request. Update the doc (content-type, status, etc) once request is done
-			LinksGrabbedModel.count({url: link}, function(err, count)
-			{
+			LinksGrabbedModel.count({url: link}, function(err, count) {
 				if( count == 0 ) {
 					(new LinksGrabbedModel({url: link, source: source_link, depth_level: depth_level})).save();
 				}
@@ -173,16 +153,15 @@ function checkUrl()
 			requestsRunning++;
 			requestsRunningPool.push(link);
 
-			process.send({message: "checking", url: urlObj.protocol+"//"+urlObj.host+urlObj.path})
+			process.send({message: "checking", url: urlObj.protocol + "//" + urlObj.host + urlObj.path});
 
-			make_request(urlObj.protocol, urlObj.host, urlObj.path, depth_level, function(err, statusCode, body, reqUrl, reqUrlDepth, headers)
-			{
-				console.log(statusCode);
-				
+			makeRequest(urlObj.protocol, urlObj.host, urlObj.path, depth_level, function(err, statusCode, body, reqUrl, reqUrlDepth, headers) {
 				processingDOM = true;
 				requestsPerSecond++;
 				requestsRunning--;
-				requestsRunningPool.splice( requestsRunningPool.indexOf(reqUrl), 1 )
+				requestsRunningPool.splice( requestsRunningPool.indexOf(reqUrl), 1 );
+
+				// console.log(err, statusCode, headers);
 
 				if (err || statusCode == 500) {
 					processingDOM = false;
@@ -197,15 +176,20 @@ function checkUrl()
 					return;
 				}
 
+				if (headers && headers['content-encoding'] == 'gzip') {
+					process.send({message: 'bad-content-encoding', host: scrapeHost, url: reqUrl, source: doc.source})
+					processingDOM = false;
+					return;
+				}
 
-				LinksGrabbedModel.findOne({url: reqUrl}, function(err, doc)
-				{
+				LinksGrabbedModel.findOne({url: reqUrl}, function(err, doc) {
 					if (doc==null) {
 						return;
 					}
 
-					if (statusCode == 404)
+					if (statusCode == 404) {
 						process.send({message: "got-404", url: reqUrl, source: doc.source})
+					}
 
 					doc.http_status = statusCode;
 					doc.content_type = headers['content-type'];
@@ -224,8 +208,11 @@ function checkUrl()
 						redir_location.host = url.parse(reqUrl).host;
 					}
 
-					if (redir_location.host == scrapeHost)
+					// @TODO: Add support for scraping subdomains
+					// Avoid scraping a different host (links to other resources)
+					if (redir_location.host == scrapeHost) {
 						(new LinksCheckModel({url:redir_location.href, source: reqUrl, depth_level: reqUrlDepth, from_redirect: true})).save();
+					}
 					
 					processingDOM = false;
 					return;
@@ -239,11 +226,11 @@ function checkUrl()
 				jsdom.env({
 					html: body,
 					scripts: ["http://code.jquery.com/jquery.js"],
-					done: function (errors, window)
-					{
+					done: function (errors, window) {
 						if (window == undefined || window.$ == undefined) {
-							if (window != undefined)
+							if (window != undefined) {
 								window.close();
+							}
 
 							processingDOM = false;
 							return;
@@ -252,21 +239,20 @@ function checkUrl()
 						var $ = window.$;
 						var links_found = $("a").length;
 						
-						$("a").each(function()
-						{
+						$("a").each(function() {
 							if (typeof($(this).attr('href'))=='undefined') {
 								processingDOM = (--links_found > 0);
 								return;
 							}
+
 							var lnk = $(this).attr("href").replace(new RegExp("#(.*)"), "");
 
-							if ((lnk = check_link(lnk, reqUrl)) == false) {
+							if ((lnk = checkLink(lnk, reqUrl)) == false) {
 								processingDOM = (--links_found > 0);
 								return;
 							}
 
 							(function(add_link, source_link, source_depth) {
-						
 								// If max_depth is set and current link's depth is greater - skip it
 								if ( max_depth > 0 && parseInt(source_depth+1) > max_depth ) {
 									processingDOM = (--links_found > 0);
@@ -274,23 +260,30 @@ function checkUrl()
 								}
 
 								// Check first if the link wasn't grabbed yet
-								LinksGrabbedModel.findOne({url: add_link}, function(err, doc)
-								{
+								LinksGrabbedModel.findOne({url: add_link}, function(err, doc) {
 									if( doc==null || doc.length==0 ) {
 										// Check if link is not in queue already
-										LinksCheckModel.findOne({url: add_link}, function(err, doc)
-										{
+										LinksCheckModel.findOne({url: add_link}, function(err, doc) {
 											var link_depth = parseInt(source_depth+1);
 
 											if( doc==null || doc.length==0) {
-												(new LinksCheckModel({url:add_link, source: source_link, depth_level: link_depth})).save(function(){ processingDOM = (--links_found > 0); });
+												(new LinksCheckModel({
+													url: add_link, 
+													source: source_link, 
+													depth_level: link_depth
+												}))
+												.save(function () {
+													processingDOM = (--links_found > 0);
+												});
 											}
-											else
+											else {
 												processingDOM = (--links_found > 0);
+											}
 										});
 									}
-									else
+									else {
 										processingDOM = (--links_found > 0);
+									}
 								});
 							})(lnk, reqUrl, reqUrlDepth);
 						});
@@ -314,7 +307,7 @@ function checkUrl()
  *
  * @return {String} The revised link
  */
-function check_link(link, parent_link) {
+function checkLink(link, parent_link) {
 	// check for "empty" links
 	if (link===undefined) {
 		return false;
@@ -346,26 +339,30 @@ function check_link(link, parent_link) {
 	return link;
 }
 
-function make_request(protocol, host, path, depth, callback)
-{
+function makeRequest(protocol, host, path, depth, callback) {
 	var opts = {
 		host: host,
-		port: 80,
+		protocol: protocol,
+		// port: 80,
 		path: path,
-		method: "GET"
+		method: "GET",
+		headers: {
+			'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36'
+		}
 	};
 
-	if( Object.keys(auth).length )
-		opts.auth = [auth.user, auth.pass].join(":");
+	var httpObject = (protocol === 'https:') ? https : http;
 
-	var req = http.request(opts, function(res)
-	{
+	if( Object.keys(auth).length ) {
+		opts.auth = [auth.user, auth.pass].join(":");
+	}
+
+	var req = httpObject.request(opts, function(res) {
 		var data = "";
 
-// console.log("STATUS CODE: ", res.headers.location);
-
-		if (res.statusCode == 401)
+		if (res.statusCode == 401) {
 			callback(false, res.statusCode, null, (protocol+"//"+host+path), depth, res.headers);
+		}
 
 		res.setEncoding('utf8');
 		res.on('data', function (chunk) {
@@ -380,34 +377,13 @@ function make_request(protocol, host, path, depth, callback)
 
 	req.on('error', function(err) {
 		console.log("ERR: %s", err, opts);
-		callback(true, null, null, (protocol+"//"+host+path), depth, null);
+		// callback(true, null, null, (protocol+"//"+host+path), depth, null);
 	});
 
 	req.end();
 }
 
-function randomString(len)
-{
-	var vowels = ['a', 'e', 'i', 'o', 'u'];
-	var consts =  ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'qu', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z', 'tt', 'ch', 'sh'];
-	var word = '';
-
-	var arr;
-	var is_vowel = false;
-
-	for (var i = 0; i < len; i++) {
-	  if (is_vowel) arr = vowels
-	  else arr = consts
-	  is_vowel = !is_vowel;
-
-	  word += arr[Math.round(Math.random()*(arr.length-1))];
-	}
-
-	return word;
-}
-
-function bytesToSize(bytes, precision)
-{
+function bytesToSize(bytes, precision) {
 	var kilobyte = 1024;
 	var megabyte = kilobyte * 1024;
 	var gigabyte = megabyte * 1024;
@@ -415,19 +391,14 @@ function bytesToSize(bytes, precision)
 
 	if ((bytes >= 0) && (bytes < kilobyte)) {
 		return bytes + ' B';
-
 	} else if ((bytes >= kilobyte) && (bytes < megabyte)) {
 		return (bytes / kilobyte).toFixed(precision) + ' KB';
-
 	} else if ((bytes >= megabyte) && (bytes < gigabyte)) {
 		return (bytes / megabyte).toFixed(precision) + ' MB';
-
 	} else if ((bytes >= gigabyte) && (bytes < terabyte)) {
 		return (bytes / gigabyte).toFixed(precision) + ' GB';
-
 	} else if (bytes >= terabyte) {
 		return (bytes / terabyte).toFixed(precision) + ' TB';
-
 	} else {
 		return bytes + ' B';
 	}

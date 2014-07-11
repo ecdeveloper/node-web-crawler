@@ -3,9 +3,15 @@
 		<a href="#"><%= data.host %></a>
 	</td>
 	<td class="crawling-status"><span class="label label-info">crawling</span></td>
-	<td class="general-stats">processing...</td>
+	<td class="general-stats">
+		<div id="memusage-chart-<%= data.row_id %>" style="border: 1px solid #ddd; float: left; width: 350px; height: 100px;"></div>
+		<div id="general-stats-<%= data.row_id %>" style="float: left; padding-left: 10px; display: block;"></div>
+		<div id="sitemap-download-<%= data.row_id %>" style="float: left; padding-left: 10px; display: block;"></div>
+	</td>
 	<td>
 		<button class="btn btn-primary pause-crawling disabled" data-host_id="<%= data.row_id %>">Pause</button>
 		<button class="btn btn-danger stop-crawling" data-host_id="<%= data.row_id %>">Stop</button>
+		<!-- @TODO: Implement recrawling -->
+		<button class="btn btn-info recrawl" data-host_id="<%= data.row_id %>" style="display: none; opacity: 0;">Re-crawl</button>
 	</td>
 </tr>

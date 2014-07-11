@@ -1,19 +1,18 @@
 {
   "name": "node-web-scraper",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": false,
   "scripts": {
     "start": "node app"
   },
   "dependencies": {
-    "express": "3.x",
-    "express-partials": "0.x.x",
-    "mongoose": "3.x.x",
-    "socket.io": "0.x.x",
-    "named-argv": "0.x.x",
-    "jsdom": "0.x.x",
-    "ejs": "0.x.x",
-    "url": "0.x.x",
-    "underscore": "1.x.x"
+    "mongoose": "^3.8.12",
+    "socket.io": "^1.0.6",
+    "underscore": "^1.6.0",
+    "jsdom": "^0.11.1",
+    "ejs": "^1.0.0",
+    "express-partials": "^0.3.0",
+    "named-argv": "^0.1.0",
+    "express": "^3.13.0"
   }
 }

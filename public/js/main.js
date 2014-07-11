@@ -1,84 +1,103 @@
-$(document).ready(function()
-{
+$(document).ready(function() {
+	var charts = {};
+
 	$(document).on("click", "#toggle-create-crawler-options", toggleNewCrawlerOptions);
 	$(document).on("click", ".pause-crawling", pauseCrawling);
 	$(document).on("click", ".stop-crawling", stopCrawling);
+	$(document).on("click", ".recrawl", reCrawl);
 
-	socket.on('general-stats', function (data)
-	{
+	socket.on('general-stats', function (data) {
 		var row_id = data.host.replace(/\./g,"");
 
 		data.row_id = row_id;
 
-		if (!$("#scraper-" + row_id).length)
+		if (!$("#scraper-" + row_id).length) {
 			$("#active-scrapers-body").append(data.html)
-		else
-			$("#scraper-" + row_id + " .general-stats").html(data.stats_html);
-	})
 
-	socket.on('checking', function(data)
-	{
+			if (!charts[row_id]) {
+				charts[row_id] = renderMemUsageChart('memusage-chart-' + row_id);
+			}
+		}
+		else {
+			// $("#scraper-" + row_id + " .general-stats").html(data.stats_html);
+			charts[row_id].series[0].addPoint(parseInt(data.memory), true);
+			$('#general-stats-' + row_id).html('Processed: ' + data.grabbed + ' pages<br>Requests: ' + data.requests);
+		}
+	});
+
+	socket.on('checking', function (data) {
 		$("#checking-log").prepend("<a href='"+ data.url +"'>" + data.url + "</a>" + "<br/>");
-	})
+	});
 
-	socket.on('rps', function(data)
-	{
+	socket.on('rps', function (data) {
 		rpsChart.series[0].addPoint([(new Date()).getTime(), parseInt(data.rps)], true, true)
-	})
+	});
 
-	socket.on('got-404', function(data)
-	{
+	socket.on('got-404', function (data) {
 		// $("#404").prepend(data.url + " [<a href='' target='_blank'>"+data.source+"</a>] <hr>");
-	})
+	});
 
-	socket.on('error', function(data)
-	{
+	socket.on('error', function (data) {
+		// var row_id = data.host.replace(/\./g,"");
+		// $("#scraper-" + row_id + " .crawling-status").html('<span class="label label-important">error</span>')		
+		// @TODO: Log the error. An error usually happens on a particular url. It doesn't stop the whole crawling.
+	});
+
+	socket.on('bad-content-encoding', function (data) {
+		console.log('Unsupported content encoding');
+		// @TODO: Log the error.
+	});
+
+	socket.on('auth-required', function (data) {
 		var row_id = data.host.replace(/\./g,"");
-		$("#scraper-" + row_id + " .crawling-status").html('<span class="label label-success">error</span>')		
-	})
 
-	socket.on('auth-required', function(data)
-	{
-		var row_id = data.host.replace(/\./g,"");
-
-		if (!$("#scraper-" + row_id).length)
+		if (!$("#scraper-" + row_id).length) {
 			$("#active-scrapers-body").append(data.html)
+		}
 		
 		$("#scraper-" + row_id + " .crawling-status").html('<span class="label label-important">bad auth</span>')		
-	})
+	});
 
-	socket.on('done-crawling', function(data)
-	{
+	socket.on('done-crawling', function (data) {
 		var row_id = data.host.replace(/\./g,"");
 		$("#scraper-" + row_id + " .crawling-status").html('<span class="label label-success">done</span>')
-		$("#scraper-" + row_id + " .general-stats").html('');
-	})
+		// $("#scraper-" + row_id + " .general-stats").html('Processed: ' + data.processed + ' pages');
+		$('#general-stats-' + row_id).html('Processed: ' + data.processed + ' pages');
 
-	socket.on('stop-crawling', function(data)
-	{
+		$('.pause-crawling[data-host_id="'+ row_id +'"]').hide();
+		$('.stop-crawling[data-host_id="'+ row_id +'"]').hide();
+		$('.recrawl[data-host_id="'+ row_id +'"]').show();
+	});
+
+	socket.on('stop-crawling', function (data) {
 		var row_id = data.host.replace(/\./g,"");
 		$("#scraper-" + row_id + " .crawling-status").html('<span class="label label-important">stopped</span>')
 		$("#scraper-" + row_id + " .general-stats").html('');
-	})
+	});
 
-	socket.on('sitemap-ready', function(data)
-	{
-		$("body").append("<a href='/"+ data.path +"'>Download sitemap</a>");
-	})
+	socket.on('sitemap-ready', function (data) {
+		// $("body").append("<a href='/"+ data.path +"'>Download sitemap</a>");
+		var row_id = data.host.replace(/\./g,"");
+		$('#sitemap-download-' + row_id).html('<hr><a href="/'+ data.path +'">Download sitemap</a>');
+	});
 })
 
 
-function pauseCrawling() {
-	socket.emit("pause-crawling", {host_id: $(this).data("host_id")})
+function pauseCrawling () {
+	socket.emit("pause-crawling", {host_id: $(this).data("host_id")});
 }
 
-function stopCrawling() {
-	socket.emit("stop-crawling", {host_id: $(this).data("host_id")})
+function stopCrawling () {
+	socket.emit("stop-crawling", {host_id: $(this).data("host_id")});
 }
 
-function toggleNewCrawlerOptions() {
+function reCrawl () {
+	socket.emit("recrawl", {host_id: $(this).data("host_id")});
+}
+
+function toggleNewCrawlerOptions () {
 	var toggler = $(this);
-	 $('#create-crawler-options').slideToggle(function(){
+	 $('#create-crawler-options').slideToggle(function () {
 	 	toggler.removeClass("collapsed expanded").addClass( ($(this).is(":visible")) ? "expanded" : "collapsed" );
 	 });
 }
