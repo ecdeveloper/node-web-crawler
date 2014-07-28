@@ -7,6 +7,7 @@ var exec = require('child_process').exec,
 	fs 			  = require('fs'),
 	child_processes = [];
 
+// Basic routing
 module.exports = function(app) {
 	app.get("/", getHomePage);
 	app.post("/add", postAddScraper);
@@ -21,13 +22,13 @@ function getHomePage(req, res) {
 }
 
 function postAddScraper(req, res) {
-	var url   		   = req.body.url,
-		auth_user	   = req.body.auth_user,
-		auth_pass	   = req.body.auth_pass,
-		depth 		   = parseInt(req.body.create_crawler_depth),
+	var url = req.body.url,
+		auth_user = req.body.auth_user,
+		auth_pass = req.body.auth_pass,
+		depth = parseInt(req.body.create_crawler_depth),
 		create_sitemap = req.body.create_crawler_sitemap == 1,
-		clean 		   = req.body.clean_crawl == 1,
-		config         = res.app.settings.config;
+		clean = req.body.clean_crawl == 1,
+		config = res.app.settings.config;
 
 	var child = child_process.fork("crawling-daemon.js");
 

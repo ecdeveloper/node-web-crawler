@@ -6,6 +6,7 @@ $(document).ready(function() {
 	$(document).on('click', '.stop-crawling', stopCrawling);
 	$(document).on('click', '.recrawl', reCrawl);
 
+	// Sockets handling
 	socket.on('general-stats', function (data) {
 		var row_id = data.host.replace(/\./g, '');
 
@@ -30,15 +31,10 @@ $(document).ready(function() {
 	});
 
 	socket.on('got-404', function (data) {
-		// $("#404").prepend(data.url + " [<a href='' target='_blank'>"+data.source+"</a>] <hr>");
-
 		// @TODO: Log 404.
 	});
 
 	socket.on('error', function (data) {
-		// var row_id = data.host.replace(/\./g,"");
-		// $("#scraper-" + row_id + " .crawling-status").html('<span class="label label-important">error</span>')
-
 		// @TODO: Log the error. An error usually happens on a particular url. It doesn't stop the whole crawling.
 	});
 
@@ -95,7 +91,7 @@ function reCrawl () {
 
 function toggleNewCrawlerOptions () {
 	var toggler = $(this);
-	 $('#create-crawler-options').slideToggle(function () {
-	 	toggler.removeClass('collapsed expanded').addClass( ($(this).is(':visible')) ? 'expanded' : 'collapsed' );
-	 });
+	$('#create-crawler-options').slideToggle(function () {
+		toggler.removeClass('collapsed expanded').addClass( ($(this).is(':visible')) ? 'expanded' : 'collapsed' );
+	});
 }
