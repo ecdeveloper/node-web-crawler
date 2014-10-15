@@ -304,33 +304,33 @@ function checkUrl() {
  */
 function checkLink(link, parent_link) {
 	// check for "empty" links
-	if (link===undefined) {
-		return false;
-	} else if (link==='' || link=='#') {
+	if (!link || link === '' || link === '#') {
 		return false;
 	}
+
 	// parse the link
-	parts = url.parse(link);
+	var linkParts = url.parse(link);
 
 	// check the scheme
-	if (parts.protocol=='http' || parts.protocol=='https') {
+	if (linkParts.protocol === 'http' || linkParts.protocol === 'https') {
 		// make sure host is our domain
-		if (parts.host!=scrapeHost) {
+		if (linkParts.host !== scrapeHost) {
 			return false;
 		}
-	} else if (link.indexOf('//')===0) {
+	} else if (link.indexOf('//') === 0) {
 		// handle schema-less; ensure host is ours
-		if (link.indexOf('//' + scrapeHost)!==0) {
+		if (link.indexOf('//' + scrapeHost) !== 0) {
 			return false;
 		}
 		link = 'http:' + link;
-	} else if (parts.protocol) {
+	} else if (linkParts.protocol) {
 		// unknown or unsupported protocol
 		return false;
 	} else {
 		// relative link
 		link = url.resolve(parent_link, link);
 	}
+
 	return link;
 }
 
@@ -338,7 +338,6 @@ function makeRequest(protocol, host, path, depth, callback) {
 	var opts = {
 		host: host,
 		protocol: protocol,
-		// port: 80,
 		path: path,
 		method: "GET",
 		headers: {
@@ -366,7 +365,7 @@ function makeRequest(protocol, host, path, depth, callback) {
 		});
 
 		res.on('end', function() {
-			callback(false, res.statusCode, data, (protocol+"//"+host+path), depth, res.headers);
+			callback(false, res.statusCode, data, (protocol + "//" + host + path), depth, res.headers);
 		});
 	});
 
@@ -378,6 +377,7 @@ function makeRequest(protocol, host, path, depth, callback) {
 	req.end();
 }
 
+// Helper function (converting bytes to human readable size)
 function bytesToSize(bytes, precision) {
 	var kilobyte = 1024;
 	var megabyte = kilobyte * 1024;
